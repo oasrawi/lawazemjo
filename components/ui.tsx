@@ -53,7 +53,7 @@ export function Select({ className, ...props }: React.SelectHTMLAttributes<HTMLS
   return (
     <select
       className={cn(
-        "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-black/20 dark:border-white/10 dark:bg-white/5 dark:text-white",
+        "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-black/20 dark:border-white/10 dark:bg-black/5 dark:text-white",
         className
       )}
       {...props}
@@ -65,7 +65,7 @@ export function Badge({ className, ...props }: React.HTMLAttributes<HTMLSpanElem
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border border-black/10 bg-black/5 px-2.5 py-1 text-xs font-semibold text-black/80 dark:border-white/15 dark:bg-white/10 dark:text-white/80",
+        "inline-flex items-center rounded-full border border-black/10 bg-black/5 px-2.5 py-1 text-xs font-semibold text-black/80 dark:border-white/15 dark:bg-black/10 dark:text-white/80",
         className
       )}
       {...props}
