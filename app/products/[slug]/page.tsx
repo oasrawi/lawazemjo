@@ -9,19 +9,24 @@ export default async function ProductPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ lang?: string }>;
 }) {
+  const pms = await params;
   const sp = await searchParams;
+
   const settings = await getSettings();
   const lang = (sp.lang === "ar" ? "ar" : "en") as "en" | "ar";
-  const p = await getProductBySlug(params.slug);
+
+  const p = await getProductBySlug(pms.slug);
 
   if (!p) {
     return (
       <SiteShell logoUrl={settings.logoUrl} social={settings.social} theme={settings.theme}>
         <Card className="p-5">
-          <p className="text-sm font-semibold">{lang === "ar" ? "المنتج غير موجود" : "Product not found"}</p>
+          <p className="text-sm font-semibold">
+            {lang === "ar" ? "المنتج غير موجود" : "Product not found"}
+          </p>
           <Link href={withLang("/products", lang)} className="text-sm font-bold">
             {lang === "ar" ? "عودة" : "Back"}
           </Link>
@@ -51,12 +56,14 @@ export default async function ProductPage({
               <img src={p.images[0]} alt={title} className="h-full w-full object-cover" />
             ) : null}
           </div>
+
           <div className="p-5">
             <h1 className="text-xl font-extrabold tracking-tight">{title}</h1>
             <p className="mt-2 text-sm font-semibold text-black/70">
               {price} {lang === "ar" ? "دينار" : "JOD"}
             </p>
-            {desc ? <p className="mt-3 text-sm text-black/70 whitespace-pre-line">{desc}</p> : null}
+
+            {desc ? <p className="mt-3 whitespace-pre-line text-sm text-black/70">{desc}</p> : null}
 
             <div className="mt-5 grid grid-cols-2 gap-2">
               <ClientActions
