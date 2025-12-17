@@ -1,93 +1,101 @@
 import { SiteShell, withLang } from "@/components/SiteShell";
-import { Badge, Card } from "@/components/ui";
-import { getProductBySlug, getSettings } from "@/lib/data";
+import { Card, Input, Select } from "@/components/ui";
+import { listProducts, getSettings } from "@/lib/data";
+import { ProductCard } from "@/components/ProductCard";
 import Link from "next/link";
-import { formatJOD } from "@/lib/cart";
-import ClientActions from "./ClientActions";
 
-export default async function ProductPage({
-  params,
+export default async function ProductsPage({
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ lang?: string }>;
+  searchParams: Promise<{ lang?: string; category?: string; q?: string; inStock?: string }>;
 }) {
-  const pms = await params;
   const sp = await searchParams;
 
   const settings = await getSettings();
   const lang = (sp.lang === "ar" ? "ar" : "en") as "en" | "ar";
 
-  const p = await getProductBySlug(pms.slug);
+  const category =
+    sp.category === "firewoods"
+      ? "firewoods"
+      : sp.category === "other"
+      ? "other"
+      : undefined;
 
-  if (!p) {
-    return (
-      <SiteShell logoUrl={settings.logoUrl} social={settings.social} theme={settings.theme}>
-        <Card className="p-5">
-          <p className="text-sm font-semibold">
-            {lang === "ar" ? "المنتج غير موجود" : "Product not found"}
-          </p>
-          <Link href={withLang("/products", lang)} className="text-sm font-bold">
-            {lang === "ar" ? "عودة" : "Back"}
-          </Link>
-        </Card>
-      </SiteShell>
-    );
-  }
+  const q = sp.q ?? "";
+  const inStockOnly = sp.inStock === "1";
 
-  const title = lang === "ar" ? p.title_ar : p.title_en;
-  const desc = lang === "ar" ? p.description_ar : p.description_en;
-  const price = formatJOD(p.price_jod);
+  const products = await listProducts({
+    category: category as any,
+    q: q || undefined,
+    inStockOnly,
+  });
+
+  const labels =
+    lang === "ar"
+      ? {
+          title: "المنتجات",
+          all: "كل المنتجات",
+          fire: "حطب",
+          other: "منتجات أخرى",
+          inStock: "المتوفر فقط",
+          search: "بحث",
+        }
+      : {
+          title: "Products",
+          all: "All Products",
+          fire: "Firewoods",
+          other: "Other Products",
+          inStock: "In stock only",
+          search: "Search",
+        };
 
   return (
     <SiteShell logoUrl={settings.logoUrl} social={settings.social} theme={settings.theme}>
       <div className="grid gap-4">
-        <div className="flex items-center justify-between">
-          <Link href={withLang("/products", lang)} className="text-sm font-bold">
-            {lang === "ar" ? "← كل المنتجات" : "← All products"}
+        <div className="flex items-end justify-between gap-3">
+          <h1 className="text-xl font-extrabold tracking-tight">{labels.title}</h1>
+          <Link href={withLang("/", lang)} className="text-sm font-semibold">
+            {lang === "ar" ? "الرئيسية" : "Home"}
           </Link>
-          {!p.in_stock ? (
-            <Badge>{lang === "ar" ? "غير متوفر" : "Out of stock"}</Badge>
-          ) : null}
         </div>
 
-        <Card className="overflow-hidden">
-          <div className="aspect-[4/3] w-full bg-black/5">
-            {p.images?.[0] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.images[0]}
-                alt={title}
-                className="h-full w-full object-cover"
-              />
-            ) : null}
-          </div>
+        <Card className="p-4">
+          <form className="grid gap-3 md:grid-cols-3" action="/products" method="get">
+            <input type="hidden" name="lang" value={lang} />
 
-          <div className="p-5">
-            <h1 className="text-xl font-extrabold tracking-tight">{title}</h1>
-
-            <p className="mt-2 text-sm font-semibold text-black/70">
-              {price} {lang === "ar" ? "دينار" : "JOD"}
-            </p>
-
-            {desc ? (
-              <p className="mt-3 whitespace-pre-line text-sm text-black/70">
-                {desc}
-              </p>
-            ) : null}
-
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              <ClientActions
-                lang={lang}
-                slug={p.slug}
-                title_en={p.title_en}
-                title_ar={p.title_ar}
-                price_jod={p.price_jod}
-                in_stock={p.in_stock}
-              />
+            <div className="md:col-span-2">
+              <Input name="q" defaultValue={q} placeholder={labels.search} />
             </div>
-          </div>
+
+            <Select name="category" defaultValue={category ?? ""}>
+              <option value="">{labels.all}</option>
+              <option value="firewoods">{labels.fire}</option>
+              <option value="other">{labels.other}</option>
+            </Select>
+
+            <label className="flex items-center gap-2 text-sm font-semibold text-black/70">
+              <input
+                name="inStock"
+                value="1"
+                defaultChecked={inStockOnly}
+                type="checkbox"
+                className="h-4 w-4"
+              />
+              {labels.inStock}
+            </label>
+
+            <div className="md:col-span-2" />
+            <button className="rounded-2xl bg-[var(--primary)] px-4 py-3 text-sm font-extrabold text-white hover:opacity-90">
+              {lang === "ar" ? "تطبيق" : "Apply"}
+            </button>
+          </form>
         </Card>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((p) => (
+            <ProductCard key={p.id} p={p} lang={lang} />
+          ))}
+        </div>
       </div>
     </SiteShell>
   );
