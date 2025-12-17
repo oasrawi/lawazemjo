@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --primary: #111827;
+  --secondary: #0ea5e9;
+}
+
+html, body { height: 100%; }
+body { @apply bg-white text-black antialiased; }
